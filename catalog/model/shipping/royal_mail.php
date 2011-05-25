@@ -635,6 +635,33 @@ class ModelShippingRoyalMail extends Model {
 					);
 				}
 			}
+			
+			// Additional shipping choice logic:
+			
+			// destroy a Standard Parcels quote if it more expensive than using 1st Class (which is faster)
+			if (isset($quote_data['standard_parcels']) && isset($quote_data['1st_class_standard'])) {
+				if ($quote_data['standard_parcels']['cost'] >= $quote_data['1st_class_standard']['cost']) {
+					unset($quote_data['standard_parcels']);
+				}
+			}
+			if (isset($quote_data['standard_parcels']) && isset($quote_data['1st_class_recorded'])) {
+				if ($quote_data['standard_parcels']['cost'] >= $quote_data['1st_class_recorded']['cost']) {
+					unset($quote_data['standard_parcels']);
+				}
+			}
+			
+			// destroy an International Signed quote if an Airsure quote exists (i.e. Airsure can sent to that destination) 
+				// International Signed is a little cheaper, but Airsure is a day faster and has higher insurance limits
+			if (isset($quote_data['international_signed']) && isset($quote_data['airsure'])) {
+				unset($quote_data['international_signed']);
+			}
+			
+			// destroy a Surface Mail quote if it more expensive than using Airmail (which is faster)
+			if (isset($quote_data['airmail']) && isset($quote_data['surface'])) {
+				if ($quote_data['surface']['cost'] >= $quote_data['airmail']['cost']) {
+					unset($quote_data['surface']);
+				}
+			}
 		}
 
 		$method_data = array();
